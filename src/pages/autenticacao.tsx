@@ -2,8 +2,10 @@ import { spawn } from "child_process";
 import { useState } from "react"
 import AuthInput from "../components/auth/AuthInput"
 import { IconExclamation } from "../components/icons";
+import useAuth from "../data/hook/useAuth";
 
 function Autenticacao() {
+    const {user, loginGoogle} = useAuth()
     const [error, setError] = useState(null);
     const [modo, setModo] = useState<'login' | 'register'>('login');
     const [email, setEmail] = useState('');
@@ -65,7 +67,7 @@ function Autenticacao() {
 
                 <hr className={`my-6 border-gray-300`} />
 
-                <button onClick={submit} className={`
+                <button onClick={loginGoogle} className={`
                 w-full
                 bg-red-500 hover:bg-red-400
                 text-white rounded-lg px-4 py-3 mt-6
