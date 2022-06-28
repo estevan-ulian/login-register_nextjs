@@ -1,11 +1,11 @@
-import { spawn } from "child_process";
 import { useState } from "react"
 import AuthInput from "../components/auth/AuthInput"
 import { IconExclamation } from "../components/icons";
 import useAuth from "../data/hook/useAuth";
 
 function Autenticacao() {
-    const {user, loginGoogle} = useAuth()
+
+    const {register, login, loginGoogle} = useAuth()
     const [error, setError] = useState(null);
     const [modo, setModo] = useState<'login' | 'register'>('login');
     const [email, setEmail] = useState('');
@@ -16,20 +16,26 @@ function Autenticacao() {
         setTimeout(() => setError(null), timeInSec * 1000)
     }
 
-    function submit() {
-        if(modo === 'login') {
-            console.log('login')
-            showError('Ocorreu erro no login')
-        } else {
-            console.log('cadastrar')
-            showError('Ocorreu erro no cadastro')
+    async function submit() {
+        try {
+            if(modo === 'login') {
+                await login(email, senha)
+            } else {
+                await register(email, senha)
+            }
+        } catch(e) {
+            showError(e?.message ?? 'Erro desconhecido!')
         }
     }
 
     return (
-        <div className={`flex h-screen items-center justify-center`}>
-            <div className={`hidden md:block w-1/2 lg:w-2/3`}>                
-                <img src="https://source.unsplash.com/random/web" alt="Imagem da tela de autenticação" className={`h-screen w-full object-cover object-center`} />
+        <div className='flex h-screen items-center justify-center'>
+            <div className='hidden md:block w-1/2 lg:w-2/3'>                
+                <img 
+                    src="https://source.unsplash.com/random/web" 
+                    alt="Imagem da tela de autenticação" 
+                    className={`h-screen w-full object-cover object-center`} 
+                />
             </div>
             <div className={`m-10 w-full md:w-1/2 lg:w-1/3`}>
                 <h1 className={`text-xl font-bold mb-5`}>
@@ -44,13 +50,15 @@ function Autenticacao() {
                 ) : false}
 
                 
-                <AuthInput label="E-mail"
+                <AuthInput 
+                    label="E-mail"
                     type="email"
                     value={email}
                     valueChange={setEmail}
                     required
                 />
-                <AuthInput label="Senha"
+                <AuthInput 
+                    label="Senha"
                     type="password"
                     value={senha}
                     valueChange={setSenha}
@@ -65,14 +73,14 @@ function Autenticacao() {
                     {modo === 'login' ? 'Entrar' : 'Cadastrar'}
                 </button>
 
-                <hr className={`my-6 border-gray-300`} />
+                <hr className='my-6 border-gray-300' />
 
                 <button onClick={loginGoogle} className={`
                 w-full
                 bg-red-500 hover:bg-red-400
                 text-white rounded-lg px-4 py-3 mt-6
                 `}>
-                    Entrar com o Google
+                    Entrar com Google
                 </button>
 
                 {modo === 'login' ? (

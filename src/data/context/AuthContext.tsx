@@ -1,11 +1,14 @@
 import route from 'next/router'
 import { createContext, useEffect, useState } from 'react'
-import User from '../../model/User'
-import firebase from '../firebase/config'
 import Cookies from 'js-cookie'
+import firebase from '../firebase/config'
+import User from '../../model/User'
 
 interface AuthContextProps {
     user?: User
+    loading?: boolean
+    register?: (email: string, senha: string) => Promise<void>
+    login?: (email: string, senha: string) => Promise<void>
     loginGoogle?: () => Promise<void>
     logout?: () => Promise<void>
 }
@@ -53,18 +56,46 @@ export function AuthProvider(props) {
         }
     }
 
+    async function login(email, password) {
+        try {
+            setLoading(true)
+            const resp = await firebase.auth().signInWithEmailAndPassword(email, password)
+            
+            await sessionConfig(resp.user)
+            route.push('/')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    async function register(email, password) {
+        try {
+            setLoading(true)
+            const resp = await firebase.auth().createUserWithEmailAndPassword(email, password)
+            
+            await sessionConfig(resp.user)
+            route.push('/')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     async function loginGoogle() {
         try {
             setLoading(true)
             const resp = await firebase.auth().signInWithPopup(
                 new firebase.auth.GoogleAuthProvider()
             )
-            sessionConfig(resp.user)
+            
+            await sessionConfig(resp.user)
             route.push('/')
         } finally {
             setLoading(false)
         }
     }
+
+    
+
 
     async function logout() {
         try {
@@ -78,15 +109,20 @@ export function AuthProvider(props) {
 
 
     useEffect(() => {
-        if(Cookies.remove('admin-template-auth')) {
+        if(Cookies.get('admin-template-auth')) {
             const cancel = firebase.auth().onIdTokenChanged(sessionConfig)
             return () => cancel()
+        } else {
+            setLoading(false);
         }
     }, [])
 
     return(
         <AuthContext.Provider value={{
             user,
+            loading,
+            login,
+            register,
             loginGoogle,
             logout
         }}>
